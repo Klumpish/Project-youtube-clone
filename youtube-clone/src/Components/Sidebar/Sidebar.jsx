@@ -16,15 +16,15 @@ import megan from '../../assets/megan.png';
 import cameron from '../../assets/cameron.png';
 
 const sidelinks = [
-	{ img: home, text: 'Home' },
-	{ img: game_icon, text: 'Gaming' },
-	{ img: automobiles, text: 'Cars' },
-	{ img: sports, text: 'Sports' },
-	{ img: entertainment, text: 'Entertainment' },
-	{ img: tech, text: 'Tecnology' },
-	{ img: music, text: 'Music' },
-	{ img: blogs, text: 'Blogs' },
-	{ img: news, text: 'News' },
+	{ img: home, text: 'Home', id: 0 },
+	{ img: game_icon, text: 'Gaming', id: 20 },
+	{ img: automobiles, text: 'Cars', id: 2 },
+	{ img: sports, text: 'Sports', id: 17 },
+	{ img: entertainment, text: 'Entertainment', id: 24 },
+	{ img: tech, text: 'Tecnology', id: 28 },
+	{ img: music, text: 'Music', id: 10 },
+	{ img: blogs, text: 'Blogs', id: 22 },
+	{ img: news, text: 'News', id: 25 },
 ];
 
 // this is the list of people the user are subscribed too..pretend.
@@ -36,14 +36,15 @@ const subscribedList = [
 	{ img: cameron, channelName: 'News daily' },
 ];
 
-function Sidebar({ sidebar }) {
+function Sidebar({ sidebar, category, setCategory }) {
 	return (
 		<div className={`sidebar ${sidebar ? '' : 'small-sidebar'}`}>
 			<div className="shortcut-links">
-				{sidelinks.map(({ img, text, index }) => (
+				{sidelinks.map(({ img, text, id }) => (
 					<div
-						className="side-link"
-						key={index}>
+						className={`side-link ${category === id ? 'active' : ''}`}
+						onClick={() => setCategory(id)}
+						key={id}>
 						<img
 							src={img}
 							alt=""
