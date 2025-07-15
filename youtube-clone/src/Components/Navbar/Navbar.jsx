@@ -8,7 +8,7 @@ import more_icon from '../../assets/more.png';
 import notification_icon from '../../assets/notification.png';
 import profile_icon from '../../assets/jack.png';
 
-function Navbar() {
+function Navbar({ setSidebar }) {
 	return (
 		<nav className="flex-div">
 			<div className="nav-left flex-div">
@@ -16,6 +16,7 @@ function Navbar() {
 					className="menu-icon"
 					src={menu_icon}
 					alt="Menu icon"
+					onClick={() => setSidebar((prev) => (prev === false ? true : false))}
 				/>
 				<img
 					className="logo"
