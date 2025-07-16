@@ -40,11 +40,11 @@ function Sidebar({ sidebar, category, setCategory }) {
 	return (
 		<div className={`sidebar ${sidebar ? '' : 'small-sidebar'}`}>
 			<div className="shortcut-links">
-				{sidelinks.map(({ img, text, id }) => (
+				{sidelinks.map(({ img, text, id, index }) => (
 					<div
 						className={`side-link ${category === id ? 'active' : ''}`}
 						onClick={() => setCategory(id)}
-						key={id}>
+						key={index}>
 						<img
 							src={img}
 							alt=""

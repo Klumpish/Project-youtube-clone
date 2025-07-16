@@ -6,23 +6,16 @@ import dislike from '../../assets/dislike.png';
 import share from '../../assets/share.png';
 import save from '../../assets/save.png';
 import jack from '../../assets/jack.png';
-import user_profile from '../../assets/user_profile.jpg';
-import { API_KEY } from '../../data';
+import { API_KEY, value_converter } from '../../data';
+import moment from 'moment';
+import { useParams } from 'react-router-dom';
 
-const fakeComments = [
-	{
-		img: user_profile,
-		userName: 'im_not_a_bOT',
-		old: '2',
-		comment: 'this comment is not about selling viagra',
-		likes: '851',
-		dislikes: '21',
-	},
-];
-const repeatedData = [...Array(8)].flatMap(() => fakeComments);
+function PlayVideo() {
+	const { videoId } = useParams();
 
-function PlayVideo({ videoId }) {
 	const [apiData, setApiData] = useState(null);
+	const [channelData, setChannelData] = useState(null);
+	const [commentData, setCommentData] = useState([]);
 
 	const fetchVideoData = async () => {
 		// Fetching Videos data
@@ -32,9 +25,32 @@ function PlayVideo({ videoId }) {
 			.then((data) => setApiData(data.items[0]));
 	};
 
+	const fetchOtherData = async () => {
+		if (!apiData?.snippet?.channelId) return;
+		// fetching channel data
+		const channelData_URL = `https://youtube.googleapis.com/youtube/v3/channels?part=snippet%2CcontentDetails%2Cstatistics&id=${apiData?.snippet?.channelId}&key=${API_KEY}`;
+
+		await fetch(channelData_URL)
+			.then((res) => res.json())
+			.then((data) => setChannelData(data.items[0]));
+
+		// fetching comment data
+		const comment_URL = `https://youtube.googleapis.com/youtube/v3/commentThreads?part=snippet%2Creplies&maxResults=50&videoId=${videoId}&key=${API_KEY}`;
+		await fetch(comment_URL)
+			.then((res) => res.json())
+			.then((data) => setCommentData(data));
+	};
+
 	useEffect(() => {
 		fetchVideoData();
-	}, []);
+	}, [videoId]);
+
+	useEffect(() => {
+		if (apiData?.snippet?.channelId) {
+			fetchOtherData();
+		}
+		console.log(channelData);
+	}, [apiData]);
 
 	return (
 		<div className="play-video">
@@ -51,21 +67,28 @@ function PlayVideo({ videoId }) {
 				allowfullscreen></iframe>
 			<h3>{apiData ? apiData.snippet.title : 'Title Here'}</h3>
 			<div className="play-video-info">
-				<p>1525 Views &bull; 2 days ago</p>
+				<p>
+					{apiData ? value_converter(apiData.statistics.viewCount) : '16k'}{' '}
+					Views &bull;{' '}
+					{apiData?.snippet?.publishedAt
+						? moment(apiData.snippet.publishedAt).fromNow()
+						: 'nothing'}{' '}
+				</p>
 				<div>
 					<span>
 						<img
 							src={like}
 							alt=""
 						/>{' '}
-						125
+						{apiData?.snippet
+							? value_converter(apiData.statistics.likeCount)
+							: 155}
 					</span>
 					<span>
 						<img
 							src={dislike}
 							alt=""
 						/>{' '}
-						2
 					</span>
 					<span>
 						<img
@@ -86,76 +109,68 @@ function PlayVideo({ videoId }) {
 			<hr />
 			<div className="publisher">
 				<img
-					src={jack}
+					src={
+						channelData ? channelData.snippet.thumbnails.default.url : { jack }
+					}
 					alt=""
 				/>
 				<div>
-					<p>ChannelName</p>
-					<span>1M Subscribers</span>
+					<p>{apiData?.snippet ? apiData.snippet.channelTitle : ''}</p>
+					<span>
+						{channelData
+							? value_converter(channelData.statistics.subscriberCount)
+							: '2'}{' '}
+						Subscribers
+					</span>
 				</div>
 				<button>Subscribe</button>
 			</div>
 			<div className="vid-description">
-				<p>Channel that makes stuff easy</p>
+				<p>
+					{apiData?.snippet ? apiData.snippet.description.slice(0, 250) : ''}
+				</p>
 				<p>Subscribe to this channel to watch more Stuff</p>
 				<hr />
-				<h4>130 Comments</h4>
-				{fakeComments.map(
-					({ img, userName, old, comment, likes, dislikes }) => (
-						<div className="comment">
-							<img
-								src={img}
-								alt=""
-							/>
-							<div>
-								<h3>
-									{userName} <span> {old} day ago</span>
-								</h3>
-								<p>{comment}</p>
-								<div className="comment-action">
-									<img
-										src={like}
-										alt=""
-									/>
-									<span>{likes}</span>
-									<img
-										src={dislike}
-										alt=""
-									/>
-									<span>{dislikes}</span>
-								</div>
+				<h4>
+					{apiData?.statistics
+						? value_converter(apiData.statistics.commentCount)
+						: 0}{' '}
+					Comments
+				</h4>
+				{/* comments */}
+				{commentData?.items?.map((item, index) => (
+					<div
+						className="comment"
+						key={item.id || index}>
+						<img
+							src={item.snippet.topLevelComment.snippet.authorProfileImageUrl}
+							alt=""
+						/>
+						<div>
+							<h3>
+								{item.snippet.topLevelComment.snippet.authorDisplayName}{' '}
+								<span> {} day ago</span>
+							</h3>
+							<p>{item.snippet.topLevelComment.snippet.textDisplay}</p>
+							<div className="comment-action">
+								<img
+									src={like}
+									alt=""
+								/>
+								<span>
+									{value_converter(
+										item.snippet.topLevelComment.snippet.likeCount
+									)}
+								</span>
+								<img
+									src={dislike}
+									alt=""
+								/>
+								<span>{}</span>
 							</div>
 						</div>
-					)
-				)}
-				{repeatedData.map(
-					({ img, userName, old, comment, likes, dislikes }) => (
-						<div className="comment">
-							<img
-								src={img}
-								alt=""
-							/>
-							<div>
-								<h3>
-									{userName} <span> {old} day ago</span>
-								</h3>
-								<p>{comment}</p>
-								<div className="comment-action">
-									<img
-										src={like}
-										alt=""
-									/>
-									<span>{likes}</span>
-									<img
-										src={dislike}
-										alt=""
-									/>
-									<span>{dislikes}</span>
-								</div>
-							</div>
-						</div>
-					)
-				)}
+					</div>
+				))}
 			</div>
 		</div>
 	);
